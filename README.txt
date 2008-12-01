@@ -1,4 +1,4 @@
-hookr
+= HookR
     by Avdi Grimm
     http://hookr.rubyforge.org
 
