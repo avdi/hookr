@@ -353,12 +353,13 @@ describe "a two-param hook named :on_signal" do
 
   describe "given a method callback :do_stuff" do
     before :each do
-      sensor = @sensor
-      @class.instance_eval do
-        define_method :do_stuff do
+      @class.module_eval do
+        def do_stuff(sensor)
           sensor.ping(:do_stuff)
         end
-        on_signal :do_stuff
+      end
+      @class.instance_eval do
+         on_signal :do_stuff
       end
       @callback = @class_hook.callbacks[0]
     end
@@ -369,7 +370,7 @@ describe "a two-param hook named :on_signal" do
 
     specify "executing the callback should execute :do_stuff" do
       @sensor.should_receive(:ping).with(:do_stuff)
-      @instance.send(:execute_hook, :on_signal)
+      @instance.send(:execute_hook, :on_signal, @sensor)
     end
 
     specify "the callback handle should be :do_stuff" do
