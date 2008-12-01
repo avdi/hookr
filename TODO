@@ -1,0 +1,11 @@
+# -*- mode: org -*-
+* TODO Add Hook#each_callback and refactor execution to use it.
+* TODO Add ability to clear callbacks from hooks.
+* TODO Add ability to disconnect hooks from their parents
+  Copy each_callback to a new null-parented set.
+* TODO Make #hooks and #callbacks read-only
+  Replace writable access with #fetch_or_create_*
+* TODO Add Listener API
+  A Listener is an object attached to a wildcard calback.  Every event that
+  passes through the callback is sent to the listener as a method call
+  corresponding to the hook name.
