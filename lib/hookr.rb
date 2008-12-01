@@ -3,9 +3,9 @@ require 'generator'
 require 'rubygems'
 require 'fail_fast'
 
-# Hookr is a library providing "hooks", aka "signals and slots", aka "events" to
+# HookR is a library providing "hooks", aka "signals and slots", aka "events" to
 # your Ruby classes.
-module Hookr
+module HookR
 
   # :stopdoc:
   VERSION = '1.0.0'
@@ -209,7 +209,7 @@ module Hookr
     #
     # Intended for use with recursive hook execution.
     #
-    # TODO: Some of this should probably be pushed down into Hookr::Hook.
+    # TODO: Some of this should probably be pushed down into HookR::Hook.
     def callback_generator(hook_name, block)
       Generator.new do |g|
         hooks[:__wildcard__].callbacks.to_a.reverse.each do |callback|
@@ -263,18 +263,18 @@ module Hookr
       if block.arity > -1 && block.arity < params.size
         raise ArgumentError, "Callback has incompatible arity"
       end
-      add_block_callback(Hookr::ExternalCallback, handle, &block)
+      add_block_callback(HookR::ExternalCallback, handle, &block)
     end
 
     # Add a callback which will be executed in the context of the event source
     def add_internal_callback(handle=nil, &block)
-      add_block_callback(Hookr::InternalCallback, handle, &block)
+      add_block_callback(HookR::InternalCallback, handle, &block)
     end
 
     # Add a callback which will send the given +message+ to the event source
     def add_method_callback(klass, message)
       method = klass.instance_method(message)
-      add_callback(Hookr::MethodCallback.new(message, method, next_callback_index))
+      add_callback(HookR::MethodCallback.new(message, method, next_callback_index))
     end
 
     def add_callback(callback)
@@ -328,7 +328,7 @@ module Hookr
   end
 
   class HookSet < Set
-    WILDCARD_HOOK = Hookr::Hook.new(:__wildcard__)
+    WILDCARD_HOOK = HookR::Hook.new(:__wildcard__)
 
     # Find hook by name.
     #
@@ -507,8 +507,8 @@ module Hookr
     end
   end
 
-end  # module Hookr
+end  # module HookR
 
-Hookr.require_all_libs_relative_to(__FILE__)
+HookR.require_all_libs_relative_to(__FILE__)
 
 # EOF

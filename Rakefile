@@ -18,7 +18,7 @@ PROJ.name = 'hookr'
 PROJ.authors = 'Avdi Grimm'
 PROJ.email = 'avdi@avdi.org'
 PROJ.url = 'http://hookr.rubyforge.org'
-PROJ.version = Hookr::VERSION
+PROJ.version = HookR::VERSION
 PROJ.rubyforge.name = 'hookr'
 
 # TODO I want to be able to use -w here...

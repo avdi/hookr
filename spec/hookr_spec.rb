@@ -1,14 +1,14 @@
 require File.join(File.dirname(__FILE__), %w[spec_helper])
 
-class CustomHookType < Hookr::Hook
+class CustomHookType < HookR::Hook
 end
 
-describe Hookr::Hooks do
+describe HookR::Hooks do
   describe "included in a class" do
     before :each do
       @class = Class.new
       @class.instance_eval do
-        include Hookr::Hooks
+        include HookR::Hooks
       end
     end
 
@@ -60,8 +60,8 @@ describe Hookr::Hooks do
 
       specify { @class.should have(1).hooks }
 
-      specify "the hooks should be a Hookr::Hook" do
-        @class.hooks[:foo].should be_a_kind_of(Hookr::Hook)
+      specify "the hooks should be a HookR::Hook" do
+        @class.hooks[:foo].should be_a_kind_of(HookR::Hook)
       end
 
       describe "and then subclassed" do
@@ -130,8 +130,8 @@ describe Hookr::Hooks do
       end
 
       specify "hooks should be instances of Hook" do
-        @class.hooks[:foo].should be_a_kind_of(Hookr::Hook)
-        @class.hooks[:bar].should be_a_kind_of(Hookr::Hook)
+        @class.hooks[:foo].should be_a_kind_of(HookR::Hook)
+        @class.hooks[:bar].should be_a_kind_of(HookR::Hook)
       end
 
       describe "given a wildcard callback" do
@@ -178,7 +178,7 @@ describe "a no-param hook named :on_signal" do
   before :each do
     @class = Class.new
     @class.instance_eval do
-      include Hookr::Hooks
+      include HookR::Hooks
       define_hook :on_signal
     end
     @instance      = @class.new
@@ -268,7 +268,7 @@ describe "a two-param hook named :on_signal" do
   before :each do
     @class = Class.new
     @class.instance_eval do
-      include Hookr::Hooks
+      include HookR::Hooks
       define_hook :on_signal, :color, :flavor
     end
     @instance      = @class.new
@@ -301,7 +301,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback should be an external callback" do
-      @callback.should be_a_kind_of(Hookr::ExternalCallback)
+      @callback.should be_a_kind_of(HookR::ExternalCallback)
     end
   end
 
@@ -331,7 +331,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback should be an internal callback" do
-      @callback.should be_a_kind_of(Hookr::InternalCallback)
+      @callback.should be_a_kind_of(HookR::InternalCallback)
     end
 
   end
@@ -347,7 +347,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback should be an internal callback" do
-      @callback.should be_a_kind_of(Hookr::InternalCallback)
+      @callback.should be_a_kind_of(HookR::InternalCallback)
     end
   end
 
@@ -364,7 +364,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback should be a method callback" do
-      @callback.should be_a_kind_of(Hookr::MethodCallback)
+      @callback.should be_a_kind_of(HookR::MethodCallback)
     end
 
     specify "executing the callback should execute :do_stuff" do
@@ -404,7 +404,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback should be external" do
-      @instance_hook.callbacks[0].should be_a_kind_of(Hookr::ExternalCallback)
+      @instance_hook.callbacks[0].should be_a_kind_of(HookR::ExternalCallback)
     end
 
     specify "the callback should call back" do
@@ -504,9 +504,9 @@ describe "a two-param hook named :on_signal" do
 
 end
 
-describe Hookr::Hook do
+describe HookR::Hook do
   before :each do
-    @class = Hookr::Hook
+    @class = HookR::Hook
     @sensor = stub("Sensor")
     sensor = @sensor
     @source_class = Class.new do
@@ -536,8 +536,8 @@ describe Hookr::Hook do
     specify { @it.should have(0).callbacks }
 
     it "should be equal to any other hook named :foo" do
-      @parent = Hookr::Hook.new(:parent)
-      @other = Hookr::Hook.new(:foo, @parent)
+      @parent = HookR::Hook.new(:parent)
+      @other = HookR::Hook.new(:foo, @parent)
       @it.should == @other
       @it.should eql(@other)
     end
@@ -591,11 +591,11 @@ describe Hookr::Hook do
       end
 
       specify "the callbacks should have the intended types" do
-        @it.callbacks[@anon_external_cb].should be_a_kind_of(Hookr::ExternalCallback)
-        @it.callbacks[@named_external_cb].should be_a_kind_of(Hookr::ExternalCallback)
-        @it.callbacks[@anon_internal_cb].should be_a_kind_of(Hookr::InternalCallback)
-        @it.callbacks[@named_internal_cb].should be_a_kind_of(Hookr::InternalCallback)
-        @it.callbacks[@method_cb].should be_a_kind_of(Hookr::MethodCallback)
+        @it.callbacks[@anon_external_cb].should be_a_kind_of(HookR::ExternalCallback)
+        @it.callbacks[@named_external_cb].should be_a_kind_of(HookR::ExternalCallback)
+        @it.callbacks[@anon_internal_cb].should be_a_kind_of(HookR::InternalCallback)
+        @it.callbacks[@named_internal_cb].should be_a_kind_of(HookR::InternalCallback)
+        @it.callbacks[@method_cb].should be_a_kind_of(HookR::MethodCallback)
       end
 
       specify "the callbacks should execute in order of addition" do
@@ -612,11 +612,11 @@ describe Hookr::Hook do
 
   describe "with no parent given" do
     before :each do
-      @it = Hookr::Hook.new(:root_hook)
+      @it = HookR::Hook.new(:root_hook)
     end
 
     it "should have a null parent" do
-      @it.parent.should be_a_kind_of(Hookr::NullHook)
+      @it.parent.should be_a_kind_of(HookR::NullHook)
     end
   end
 
@@ -625,9 +625,9 @@ describe Hookr::Hook do
       @event           = stub("Event")
       @parent_callback = stub("Parent callback", :handle => :parent)
       @child_callback  = stub("Child callback", :handle => :child)
-      @parent = Hookr::Hook.new(:parent_hook)
+      @parent = HookR::Hook.new(:parent_hook)
       @parent.add_callback(@parent_callback)
-      @it = Hookr::Hook.new(:child_hook, @parent)
+      @it = HookR::Hook.new(:child_hook, @parent)
       @it.add_callback(@child_callback)
     end
 
@@ -649,7 +649,7 @@ describe Hookr::Hook do
   describe "duplicated" do
     before :each do
       @callback = stub("Callback", :handle => :foo)
-      @parent = Hookr::Hook.new(:parent)
+      @parent = HookR::Hook.new(:parent)
       @parent.add_callback(@callback)
       @child  = @parent.dup
     end
@@ -668,12 +668,12 @@ describe Hookr::Hook do
   end
 end
 
-describe Hookr::CallbackSet do
+describe HookR::CallbackSet do
   before :each do
-    @it = Hookr::CallbackSet.new
-    @cb1 = Hookr::Callback.new(:cb1, 1)
-    @cb2 = Hookr::Callback.new(:cb2, 2)
-    @cb3 = Hookr::Callback.new(:cb3, 3)
+    @it = HookR::CallbackSet.new
+    @cb1 = HookR::Callback.new(:cb1, 1)
+    @cb2 = HookR::Callback.new(:cb2, 2)
+    @cb3 = HookR::Callback.new(:cb3, 3)
   end
 
   describe "given three callbacks" do
@@ -705,29 +705,29 @@ describe Hookr::CallbackSet do
   end
 end
 
-describe Hookr::Callback, "with handle :cb1 and an index of 1" do
+describe HookR::Callback, "with handle :cb1 and an index of 1" do
   before :each do
     @block = stub("block", :call => nil)
-    @it = Hookr::Callback.new(:cb1, 1)
+    @it = HookR::Callback.new(:cb1, 1)
   end
 
   it "should sort as greater than a callback with index of 0" do
-    @other = Hookr::Callback.new(:cb2, 0)
+    @other = HookR::Callback.new(:cb2, 0)
     (@it <=> @other).should == 1
   end
 
   it "should sort as less than a callback with index of 2" do
-    @other = Hookr::Callback.new(:cb2, 2)
+    @other = HookR::Callback.new(:cb2, 2)
     (@it <=> @other).should == -1
   end
 
   it "should sort as equal to a callback with index of 1" do
-    @other = Hookr::Callback.new(:cb2, 1)
+    @other = HookR::Callback.new(:cb2, 1)
     (@it <=> @other).should == 0
   end
 
   it "should sort as equal to any callback with the same handle" do
-    @other = Hookr::Callback.new(:cb1, 2)
+    @other = HookR::Callback.new(:cb1, 2)
     (@it <=> @other).should == 0
   end
 end
@@ -743,11 +743,11 @@ describe "Callbacks: " do
     @event = stub("Event", :source => @source)
   end
 
-  describe Hookr::ExternalCallback do
+  describe HookR::ExternalCallback do
     describe "with a no-param block" do
       before :each do
         @block = stub("Block", :arity => 0, :call => nil)
-        @it = Hookr::ExternalCallback.new(@handle, @block, @index)
+        @it = HookR::ExternalCallback.new(@handle, @block, @index)
       end
 
       it "should take 0 args from event and call block with no args" do
@@ -760,7 +760,7 @@ describe "Callbacks: " do
     describe "with a two-param block" do
       before :each do
         @block = stub("Block", :arity => 2, :call => nil)
-        @it = Hookr::ExternalCallback.new(@handle, @block, @index)
+        @it = HookR::ExternalCallback.new(@handle, @block, @index)
       end
 
       it "should take 2 args from event and call block with 2 args" do
@@ -771,14 +771,14 @@ describe "Callbacks: " do
     end
   end
 
-  describe Hookr::InternalCallback do
+  describe HookR::InternalCallback do
     describe "with a no-param block" do
       before :each do
         source = @source
         @block = lambda do
           source.ping
         end
-        @it = Hookr::InternalCallback.new(@handle, @block, @index)
+        @it = HookR::InternalCallback.new(@handle, @block, @index)
       end
 
       it "should instance eval the block on the event source" do
@@ -792,18 +792,18 @@ describe "Callbacks: " do
       it "should raise error" do
         @block = stub("Block", :arity => 1, :call => nil)
         lambda do
-          @it = Hookr::InternalCallback.new(@handle, @block, @index)
+          @it = HookR::InternalCallback.new(@handle, @block, @index)
         end.should raise_error
       end
     end
   end
 
-  describe Hookr::MethodCallback do
+  describe HookR::MethodCallback do
     describe "with a no-param method" do
       before :each do
         @method = stub("Method", :arity => 0, :call => nil)
         @bound_method = stub("Bound Method", :call => nil)
-        @it = Hookr::MethodCallback.new(@handle, @method, @index)
+        @it = HookR::MethodCallback.new(@handle, @method, @index)
       end
 
       it "should take 0 args from event and call method with no args" do
@@ -818,7 +818,7 @@ describe "Callbacks: " do
       before :each do
         @method = stub("Method", :arity => 2, :call => nil)
         @bound_method = stub("Bound Method", :call => nil)
-        @it = Hookr::MethodCallback.new(@handle, @method, @index)
+        @it = HookR::MethodCallback.new(@handle, @method, @index)
       end
 
       it "should take 2 args from event and call method with 2 args" do
@@ -832,13 +832,13 @@ describe "Callbacks: " do
 
 end
 
-describe Hookr::Event do
+describe HookR::Event do
   describe "with three arguments" do
     before :each do
       @source              = stub("Source")
       @name                = :on_signal
       @arguments           = ["arg1", "arg2", "arg3"]
-      @it = Hookr::Event.new(@source,
+      @it = HookR::Event.new(@source,
                              @name,
                              @arguments)
     end
