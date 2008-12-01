@@ -5,11 +5,16 @@
   Copy each_callback to a new null-parented set.
 * TODO Make #hooks and #callbacks read-only
   Replace writable access with #fetch_or_create_*
-* TODO Add Listener API
+* DONE Add Listener API
+  CLOSED: [2008-12-01 Mon 17:04]
   A Listener is an object attached to a wildcard calback.  Every event that
   passes through the callback is sent to the listener as a method call
   corresponding to the hook name.
+* TODO Add an (easy) way to remove listeners
 * TODO (Maybe) Verify that recursive handlers call either skip, next, or cancel.
 * TODO Add #skip and #cancel methods to Event.
 * TODO Consider using Roxy for #hooks and #callbacks extensions.
   http://ryandaigle.com/articles/2008/11/10/implement-ruby-proxy-objects-with-roxy
+* TODO Standard, extensable method for deriving handles from objects
+  Driver: we need to be able to remove a listener using the the listener object
+  as an index.
