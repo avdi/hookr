@@ -11,4 +11,5 @@
   corresponding to the hook name.
 * TODO (Maybe) Verify that recursive handlers call either skip, next, or cancel.
 * TODO Add #skip and #cancel methods to Event.
-
+* TODO Consider using Roxy for #hooks and #callbacks extensions.
+  http://ryandaigle.com/articles/2008/11/10/implement-ruby-proxy-objects-with-roxy

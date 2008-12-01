@@ -4,8 +4,7 @@
 
 == DESCRIPTION:
 
-HookR is a callback hook facility for Ruby.  With it you can enhance your
-objects' APIs with named hooks to which arbitrary callbacks may be attached.
+HookR is a publish/subscribe callback hook facility for Ruby.
 
 === What is it?
 
@@ -94,11 +93,13 @@ Pour yourself a drink, loosen your tie, and let's get cozy with HookR.
 === Hooks
 
 Hooks are at the center of HookR's functionality.  A hook is a named attachment
-point for arbitrary callbacks.  From the event-handling perspective, hooks
-define interesting events in an object's lifetime.  For example, an XML parser
-might define hooks named <code>:tag_start</code> and <code>:tag_end</code> hooks.  A network protocol
-class might define <code>:connected</code> and <code>:message_received</code> hooks.  A
-database-backed model might define <code>:before_save</code> and <code>:after_save</code> hooks.
+point for arbitrary callbacks.  It is the "publish" portion of
+publish/subscribe. From the event-handling perspective, hooks define interesting
+events in an object's lifetime.  For example, an XML parser might define hooks
+named <code>:tag_start</code> and <code>:tag_end</code> hooks.  A network
+protocol class might define <code>:connected</code> and
+<code>:message_received</code> hooks.  A database-backed model might define
+<code>:before_save</code> and <code>:after_save</code> hooks.
 
 Hooks are defined at the class level, using the <code>define_hook</code> method:
 
@@ -129,7 +130,8 @@ list.  We'll talk about that in the Advanced section.
 === Callbacks
 
 Hooks aren't much use without callbacks.  Callbacks represent a piece of code to
-be run when a hook is executed.
+be run when a hook is executed.  They are the "subscribe" part of the
+publish/subscribe duo.
 
 HookR defines three types of callback:
 
@@ -158,10 +160,14 @@ these should usually only be added internally by the source class, since private
 methods may be called.  The method will receive as arguments the Event (see
 below), and an argument for each parameter defined on the hook.
 
+==== Named Callbacks
+
 A callback may be *named* or *anonymous*.  Naming callbacks makes it easier to
 reference them after adding them, for instance if you want to remove a
 callback.  Naming calbacks also ensures that only one callback with the given name
 will be added to a hook.
+
+==== Adding Callbacks
 
 There are several ways to add callbacks to hooks.
 
@@ -262,6 +268,44 @@ callback.
 <code>remove_callback</code> methods are available at both the class and instance levels.
 They can be used to remove class- or instance-level callbacks, respectively.
 Both forms take either a callback index or a handle.
+
+=== Listeners
+
+Listeners embody an alternative model of publish/subscribe event handling.  A
+Listener is an object which "listens" to another object.  Instead of attaching
+callbacks to individual methods, you attach a listener to an object which has
+hooks.  Anytime a hook is executed on the object being listened to, a method
+with a name corresponding to the hook is called on the listener.  These handler
+methods should take arguments corresponding to the parameters defined on the
+hook.
+
+This model is similar to the SAX XML event model, and to the Java
+Event/EventListener model.
+
+For more convenient listener definition, HookR can generate a base class for you
+to base your listeners on.  The base class will provide default do-nothing
+methods for each hook, so you only have to redefine the methods you care about.
+
+  class ZeroWing
+    include HookR::Hooks
+
+    define_hook :we_get_signal, :message
+
+    define_hook :set_us_up_the_bomb
+  end
+
+  class MyListener < ZeroWing::Listener
+    def we_get_signal(message)
+      # ...
+    end
+
+    # :set_us_up_the_bomb events are silently ignored
+  end
+
+  zw = ZeroWing.new
+  l  = MyListener.new
+  
+  zw.add_listener(l)
 
 === Events
 

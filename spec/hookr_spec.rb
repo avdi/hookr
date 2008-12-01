@@ -170,6 +170,29 @@ describe HookR::Hooks do
 
         specify { @it.should have(2).hooks }
       end
+
+      it "should define a Listener class responding to #foo and #bar" do
+        @listener_class = @class::Listener
+        @listener_class.instance_methods(false).should include("foo", "bar")
+      end
+
+      describe "given a subscribed Listener" do
+        before :each do
+          @listener = stub("Listener", :foo => nil, :bar => nil)
+          @it = @class.new
+          @it.add_listener(@listener)
+        end
+
+        it "should call listener.foo on :foo execution" do
+          @listener.should_receive(:foo)
+          @it.send(:execute_hook, :foo)
+        end
+
+        it "should call listener.bar on :bar execution" do
+          @listener.should_receive(:bar)
+          @it.send(:execute_hook, :bar)
+        end
+      end
     end
   end
 end
@@ -501,6 +524,18 @@ describe "a two-param hook named :on_signal" do
     end
 
 
+  end
+
+  describe "given a Listener" do
+    before :each do
+      @listener = stub("Listener")
+      @instance.add_listener(@listener)
+    end
+
+    it "should pass arguments to listener" do
+      @listener.should_receive(:on_signal).with("red", "green")
+      @instance.send(:execute_hook, :on_signal, "red", "green")
+    end
   end
 
 end

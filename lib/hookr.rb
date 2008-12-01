@@ -78,6 +78,22 @@ module HookR
         END
       end
 
+      def const_missing(const_name)
+        if const_name.to_s == "Listener"
+          hooks = self.hooks
+          listener_class ||= Class.new do
+            hooks.each do |hook|
+              define_method(hook.name) do |*args|
+                # NOOP
+              end
+            end
+          end
+          const_set(const_name, listener_class)
+        else
+          super(const_name)
+        end
+      end
+
       protected
 
       def make_hook(name, parent, params)
@@ -113,7 +129,7 @@ module HookR
 
       # Add a callback which will be executed
       def add_wildcard_callback(handle=nil, &block)
-        hooks[:__wildcard__].add_external_callback(handle, &block)
+        hooks[:__wildcard__].add_basic_callback(handle, &block)
       end
 
       # Remove a wildcard callback
@@ -137,6 +153,10 @@ module HookR
       # Add a callback which will be executed in the context from which it was defined
       def add_external_callback(hook_name, handle, block)
         hooks[hook_name].add_external_callback(handle, &block)
+      end
+
+      def add_basic_callback(hook_name, handle, block)
+        hooks[hook_name].add_basic_callback(handle, &block)
       end
 
       # Add a callback which will call an instance method of the source class
@@ -188,6 +208,14 @@ module HookR
         execute_hook_recursively(hook_name, event, block)
       else
         execute_hook_iteratively(hook_name, event)
+      end
+    end
+
+    # Add a listener object.  The object should have a method defined for every
+    # hook this object publishes.
+    def add_listener(listener, handle=listener.object_id.to_sym)
+      add_wildcard_callback(handle) do |event|
+        listener.send(event.name, *event.arguments)
       end
     end
 
@@ -265,6 +293,10 @@ module HookR
         raise ArgumentError, "Callback has incompatible arity"
       end
       add_block_callback(HookR::ExternalCallback, handle, &block)
+    end
+
+    def add_basic_callback(handle=nil, &block)
+      add_block_callback(HookR::BasicCallback, handle, &block)
     end
 
     # Add a callback which will be executed in the context of the event source
@@ -414,6 +446,13 @@ module HookR
   class ExternalCallback < BlockCallback
     def call(event)
       block.call(*event.to_args(block.arity))
+    end
+  end
+
+  # A callback which will call a one-arg block with an event object
+  class BasicCallback < BlockCallback
+    def call(event)
+      block.call(event)
     end
   end
 
