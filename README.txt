@@ -18,7 +18,7 @@ HookR can be understood in a few different ways.
   in Emacs-lisp; or signals-and-slots as implemented in the
   Qt[http://doc.trolltech.com/4.4/signalsandslots.html],
   Boost.Signals[http://www.boost.org/doc/libs/1_37_0/doc/html/signals.html], or
-  libsigc++[http://libsigc.sourceforge.net/] C++ frameworks - HookR provides a
+  libsigc++[http://libsigc.sourceforge.net/] frameworks - HookR provides a
   very similar facility.
 * If youve ever used the Observer standard library, but wished you could
   have more than one type of notification per observable object, HookR is the
