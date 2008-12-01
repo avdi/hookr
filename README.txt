@@ -141,7 +141,7 @@ using #instance_eval.  In general this type of callback should only be defined
 internally to the class having the hook, since the called code will have full
 access to private members and instance variables of the source object.
 
-One limitation of internal callbacks is that due to limitations of
+One drawback of internal callbacks is that due to limitations of
 <code>#instance_eval</code>, they cannot receive arguments.
 
 ==== External Callbacks
@@ -178,11 +178,12 @@ The first way to define a callback is to do it in the class definition:
     end
   end
 
-HookR creates an anonymous, class-level macros for each defined hook. The above example
-demonstrates an *internal* callback being defined on the hook <code>:we_get_signal</code>.
-Why internal?  HookR uses a set of rules to determine what kind of callback to
-generate.  If the block passed to the callback macro has no arguments, it will
-generate an internal callback.  If, however, the block defines arguments:
+HookR creates class-level macros for each defined hook. The above example
+demonstrates an anonymous *internal* callback being defined on the hook
+<code>:we_get_signal</code>.  Why internal?  HookR uses a set of rules to
+determine what kind of callback to generate.  If the block passed to the
+callback macro has no arguments, it will generate an internal callback.  If,
+however, the block defines arguments:
 
   class ZeroWing
     include HookR::Hooks
@@ -236,7 +237,7 @@ add the different types of callback using the methods <code>add_external_callbac
 for details.
 
 The methods all return a callback *handle*, which can be used to access or remove
-the callback.  If this will be the same as the <code>handle</code> argument, if one is supplied.
+the callback.  This will be the same as the <code>handle</code> argument, if one is supplied.
 
 ===== In client code
 
@@ -357,6 +358,13 @@ will prevent further callbacks from running.
 === Advanced
 
 In which we take a look under HookR's clothes.
+
+==== Adding multiple callbacks with the same name
+
+When adding callbacks with an explicit handle, only one callback for that handle
+can be added to a given hook.  Subsequent attempts to add a callback with the
+same name will silently fail.  This makes adding named callbacks an idempotent
+operation.
 
 ==== Hook Chaining
 
