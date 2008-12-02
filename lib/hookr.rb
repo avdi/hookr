@@ -58,13 +58,13 @@ module HookR
     module ClassMethods
       # Returns the hooks exposed by this class
       def hooks
-        (@hooks ||= HookSet.new)
+        result = fetch_or_create_hooks.dup.freeze
       end
 
       # Define a new hook +name+.  If +params+ are supplied, they will become
       # the hook's named parameters.
       def define_hook(name, *params)
-        hooks << make_hook(name, nil, params)
+        fetch_or_create_hooks << make_hook(name, nil, params)
 
         # We must use string evaluation in order to define a method that can
         # receive a block.
@@ -82,7 +82,7 @@ module HookR
 
       def const_missing(const_name)
         if const_name.to_s == "Listener"
-          hooks = self.hooks
+          hooks = fetch_or_create_hooks
           listener_class ||= Class.new do
             hooks.each do |hook|
               define_method(hook.name) do |*args|
@@ -105,7 +105,11 @@ module HookR
       private
 
       def inherited(child)
-        child.instance_variable_set(:@hooks, hooks.deep_copy)
+        child.instance_variable_set(:@hooks, fetch_or_create_hooks.deep_copy)
+      end
+
+      def fetch_or_create_hooks
+        @hooks ||= HookSet.new
       end
 
     end                         # end of ClassMethods
@@ -115,7 +119,7 @@ module HookR
       public
 
       def remove_callback(hook_name, handle_or_index)
-        hooks[hook_name].remove_callback(handle_or_index)
+        fetch_or_create_hooks[hook_name].remove_callback(handle_or_index)
       end
 
       protected
@@ -131,7 +135,7 @@ module HookR
 
       # Add a callback which will be executed
       def add_wildcard_callback(handle=nil, &block)
-        hooks[:__wildcard__].add_basic_callback(handle, &block)
+        fetch_or_create_hooks[:__wildcard__].add_basic_callback(handle, &block)
       end
 
       # Remove a wildcard callback
@@ -146,7 +150,7 @@ module HookR
       def add_block_callback(hook_name, handle, block)
         case block.arity
         when -1, 0
-          hooks[hook_name].add_internal_callback(handle, &block)
+          fetch_or_create_hooks[hook_name].add_internal_callback(handle, &block)
         else
           add_external_callback(hook_name, handle, block)
         end
@@ -154,17 +158,18 @@ module HookR
 
       # Add a callback which will be executed in the context from which it was defined
       def add_external_callback(hook_name, handle, block)
-        hooks[hook_name].add_external_callback(handle, &block)
+        fetch_or_create_hooks[hook_name].add_external_callback(handle, &block)
       end
 
       def add_basic_callback(hook_name, handle, block)
-        hooks[hook_name].add_basic_callback(handle, &block)
+        fetch_or_create_hooks[hook_name].add_basic_callback(handle, &block)
       end
 
       # Add a callback which will call an instance method of the source class
       def add_method_callback(hook_name, method)
-        hooks[hook_name].add_method_callback(self, method)
+        fetch_or_create_hooks[hook_name].add_method_callback(self, method)
       end
+
     end                         # end of CallbackHelpers
 
     def self.included(other)
@@ -176,7 +181,7 @@ module HookR
 
     # returns the hooks exposed by this object
     def hooks
-      (@hooks ||= self.class.hooks.deep_copy)
+      fetch_or_create_hooks.dup.freeze
     end
 
     # Execute all callbacks associated with the hook identified by +hook_name+,
@@ -238,8 +243,8 @@ module HookR
     end
 
     def execute_hook_iteratively(hook_name, event)
-      hooks[:__wildcard__].execute_callbacks(event)
-      hooks[hook_name].execute_callbacks(event)
+      fetch_or_create_hooks[:__wildcard__].execute_callbacks(event)
+      fetch_or_create_hooks[hook_name].execute_callbacks(event)
     end
 
     # Returns a Generator which yields:
@@ -248,14 +253,12 @@ module HookR
     # 3. a proc which delegates to +block+
     #
     # Intended for use with recursive hook execution.
-    #
-    # TODO: Some of this should probably be pushed down into HookR::Hook.
     def callback_generator(hook_name, block)
       Generator.new do |g|
-        hooks[:__wildcard__].callbacks.to_a.reverse.each do |callback|
+        fetch_or_create_hooks[:__wildcard__].each_callback_reverse do |callback|
           g.yield callback
         end
-        hooks[hook_name].callbacks.to_a.reverse.each do |callback|
+        fetch_or_create_hooks[hook_name].each_callback_reverse do |callback|
           g.yield callback
         end
         g.yield(lambda do |event|
@@ -266,6 +269,10 @@ module HookR
 
     def listener_to_handle(listener)
       ("listener_" + listener.object_id.to_s).to_sym
+    end
+
+    def fetch_or_create_hooks
+      @hooks ||= self.class.hooks.deep_copy
     end
   end
 
@@ -299,7 +306,7 @@ module HookR
     end
 
     def callbacks
-      (@callbacks ||= CallbackSet.new)
+      fetch_or_create_callbacks.dup.freeze
     end
 
     # Add a callback which will be executed in the context where it was defined
@@ -328,36 +335,51 @@ module HookR
     end
 
     def add_callback(callback)
-      callbacks << callback
+      fetch_or_create_callbacks << callback
       callback.handle
     end
 
     def remove_callback(handle_or_index)
       assert_exists(handle_or_index)
       case handle_or_index
-      when Symbol then callbacks.delete_if{|cb| cb.handle == handle_or_index}
-      when Integer then callbacks.delete_if{|cb| cb.index == handle_or_index}
+      when Symbol then fetch_or_create_callbacks.delete_if{|cb| cb.handle == handle_or_index}
+      when Integer then fetch_or_create_callbacks.delete_if{|cb| cb.index == handle_or_index}
       else raise ArgumentError, "Key must be integer index or symbolic handle "\
                                 "(was: #{handle_or_index.inspect})"
       end
     end
 
+    # Yields callbacks in order of addition, starting with any parent hooks
+    def each_callback(&block)
+      parent.each_callback(&block)
+      fetch_or_create_callbacks.each(&block)
+    end
+
+    # Yields callbacks in reverse order of addition, starting with own callbacks
+    # and then moving on to any parent hooks.
+    def each_callback_reverse(&block)
+      fetch_or_create_callbacks.each_reverse(&block)
+      parent.each_callback_reverse(&block)
+    end
+
     # Excute the callbacks in order.  +source+ is the object initiating the event.
     def execute_callbacks(event)
       parent.execute_callbacks(event)
-      callbacks.execute(event)
+      fetch_or_create_callbacks.each do |callback|
+        callback.call(event)
+      end
     end
 
     # Callback count including parents
     def total_callbacks
-      callbacks.size + parent.total_callbacks
+      fetch_or_create_callbacks.size + parent.total_callbacks
     end
 
     private
 
     def next_callback_index
-      return 0 if callbacks.empty?
-      callbacks.map{|cb| cb.index}.max + 1
+      return 0 if fetch_or_create_callbacks.empty?
+      fetch_or_create_callbacks.map{|cb| cb.index}.max + 1
     end
 
     def add_block_callback(type, handle=nil, &block)
@@ -366,10 +388,22 @@ module HookR
       handle ||= next_callback_index
       add_callback(type.new(handle, block, next_callback_index))
     end
+
+    def fetch_or_create_callbacks
+      @callbacks ||= CallbackSet.new
+    end
   end
 
   # A null object class for terminating Hook inheritance chains
   class NullHook
+    def each_callback(&block)
+      # NOOP
+    end
+
+    def each_callback_reverse(&block)
+      # NOOP
+    end
+
     def execute_callbacks(event)
       # NOOP
     end
@@ -425,11 +459,10 @@ module HookR
       end
     end
 
-    def execute(event)
-      each do |callback|
-        callback.call(event)
-      end
+    def each_reverse(&block)
+      sort{|x, y| y <=> x}.each(&block)
     end
+
   end
 
   Callback = Struct.new(:handle, :index) do
@@ -470,8 +503,21 @@ module HookR
 
   # A callback which will call a one-arg block with an event object
   class BasicCallback < BlockCallback
+    def initialize(handle, block, index)
+      check_arity!(block)
+      super
+    end
+
     def call(event)
       block.call(event)
+    end
+
+    private
+
+    def check_arity!(block)
+      if block.arity != 1
+        raise ArgumentError, "Callback block must take a single argument"
+      end
     end
   end
 

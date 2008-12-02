@@ -1,16 +1,19 @@
 # -*- mode: org -*-
-* TODO Add Hook#each_callback and refactor execution to use it.
+* DONE Add Hook#each_callback and refactor execution to use it.
+  CLOSED: [2008-12-02 Tue 11:51]
 * TODO Add ability to clear callbacks from hooks.
 * TODO Add ability to disconnect hooks from their parents
   Copy each_callback to a new null-parented set.
-* TODO Make #hooks and #callbacks read-only
+* DONE Make #hooks and #callbacks read-only
+  CLOSED: [2008-12-02 Tue 11:51]
   Replace writable access with #fetch_or_create_*
 * DONE Add Listener API
   CLOSED: [2008-12-01 Mon 17:04]
   A Listener is an object attached to a wildcard calback.  Every event that
   passes through the callback is sent to the listener as a method call
   corresponding to the hook name.
-* TODO Add an (easy) way to remove listeners
+* DONE Add an (easy) way to remove listeners
+  CLOSED: [2008-12-02 Tue 11:51]
 * TODO (Maybe) Verify that recursive handlers call either skip, next, or cancel.
 * TODO Add #skip and #cancel methods to Event.
 * TODO Consider using Roxy for #hooks and #callbacks extensions.

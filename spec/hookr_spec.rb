@@ -649,6 +649,24 @@ describe HookR::Hook do
 
         @it.execute_callbacks(@event)
       end
+
+      it "should be able to iterate through callbacks" do
+        callbacks  = []
+        @it.each_callback do |callback|
+          callbacks << callback.handle
+        end
+        callbacks.should == [@anon_external_cb, @named_external_cb,
+          @anon_internal_cb, @named_internal_cb, @method_cb]
+      end
+
+      it "should be able to iterate through callbacks in reverse" do
+        callbacks  = []
+        @it.each_callback_reverse do |callback|
+          callbacks << callback.handle
+        end
+        callbacks.should == [@method_cb, @named_internal_cb, @anon_internal_cb,
+          @named_external_cb, @anon_external_cb]
+      end
     end
   end
 
@@ -685,6 +703,22 @@ describe HookR::Hook do
 
     it "should report 2 total callbacks" do
       @it.total_callbacks.should == 2
+    end
+
+    it "should be able to iterate over own and parent callbacks" do
+        callbacks  = []
+        @it.each_callback do |callback|
+          callbacks << callback
+        end
+        callbacks.should == [@parent_callback, @child_callback]
+    end
+
+    it "should be able to reverse-iterate over own and parent callbacks" do
+        callbacks  = []
+        @it.each_callback_reverse do |callback|
+          callbacks << callback
+        end
+        callbacks.should == [@child_callback, @parent_callback]
     end
   end
 
@@ -872,6 +906,47 @@ describe "Callbacks: " do
     end
   end
 
+  describe HookR::BasicCallback, "handling a two-arg event" do
+    before :each do
+      @event.stub!(:arguments => [:a, :b])
+    end
+
+    describe "given a zero-param block" do
+      before :each do
+        @block = stub("Block", :arity => 0)
+      end
+
+      it "should bitch about arity" do
+        lambda do
+          @it    = HookR::BasicCallback.new(@handle, @block, @index)
+        end.should raise_error(ArgumentError)
+      end
+    end
+
+    describe "given a one-param block" do
+      before :each do
+        @block = stub("Block", :arity => 1)
+        @it    = HookR::BasicCallback.new(@handle, @block, @index)
+      end
+
+      it "should pass the event as the only argument to the block" do
+        @block.should_receive(:call).with(@event)
+        @it.call(@event)
+      end
+    end
+
+    describe "given a two-param block" do
+      before :each do
+        @block = stub("Block", :arity => 2)
+      end
+
+      it "should bitch about arity" do
+        lambda do
+          @it    = HookR::BasicCallback.new(@handle, @block, @index)
+        end.should raise_error(ArgumentError)
+      end
+    end
+  end
 end
 
 describe HookR::Event do
