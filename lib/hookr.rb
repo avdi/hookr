@@ -7,7 +7,9 @@ require 'fail_fast'
 # your Ruby classes.
 module HookR
 
+  # No need to document the boilerplate convenience methods defined by Mr. Bones.
   # :stopdoc:
+
   VERSION = '1.0.0'
   LIBPATH = ::File.expand_path(::File.dirname(__FILE__)) + ::File::SEPARATOR
   PATH = ::File.dirname(LIBPATH) + ::File::SEPARATOR
@@ -213,10 +215,19 @@ module HookR
 
     # Add a listener object.  The object should have a method defined for every
     # hook this object publishes.
-    def add_listener(listener, handle=listener.object_id.to_sym)
+    def add_listener(listener, handle=listener_to_handle(listener))
       add_wildcard_callback(handle) do |event|
         listener.send(event.name, *event.arguments)
       end
+    end
+
+    # Remove a listener by handle or by the listener object itself
+    def remove_listener(handle_or_listener)
+      handle = case handle_or_listener
+               when Symbol then handle_or_listener
+               else listener_to_handle(handle_or_listener)
+               end
+      remove_wildcard_callback(handle)
     end
 
     private
@@ -251,6 +262,10 @@ module HookR
                   block.call(*event.arguments)
                 end)
       end
+    end
+
+    def listener_to_handle(listener)
+      ("listener_" + listener.object_id.to_s).to_sym
     end
   end
 
@@ -295,6 +310,8 @@ module HookR
       add_block_callback(HookR::ExternalCallback, handle, &block)
     end
 
+    # Add a callback which will pass only the event object to +block+ - it will
+    # not try to pass arguments as well.
     def add_basic_callback(handle=nil, &block)
       add_block_callback(HookR::BasicCallback, handle, &block)
     end
@@ -316,10 +333,12 @@ module HookR
     end
 
     def remove_callback(handle_or_index)
+      assert_exists(handle_or_index)
       case handle_or_index
       when Symbol then callbacks.delete_if{|cb| cb.handle == handle_or_index}
       when Integer then callbacks.delete_if{|cb| cb.index == handle_or_index}
-      else raise ArgumentError, "Key must be integer index or symbolic handle"
+      else raise ArgumentError, "Key must be integer index or symbolic handle "\
+                                "(was: #{handle_or_index.inspect})"
       end
     end
 

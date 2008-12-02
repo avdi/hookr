@@ -192,6 +192,12 @@ describe HookR::Hooks do
           @listener.should_receive(:bar)
           @it.send(:execute_hook, :bar)
         end
+
+        specify "the listener should be removable" do
+          @it.remove_listener(@listener)
+          @listener.should_not_receive(:bar)
+          @it.send(:execute_hook, :bar)
+        end
       end
     end
   end

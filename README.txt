@@ -273,11 +273,10 @@ Both forms take either a callback index or a handle.
 
 Listeners embody an alternative model of publish/subscribe event handling.  A
 Listener is an object which "listens" to another object.  Instead of attaching
-callbacks to individual methods, you attach a listener to an object which has
-hooks.  Anytime a hook is executed on the object being listened to, a method
-with a name corresponding to the hook is called on the listener.  These handler
-methods should take arguments corresponding to the parameters defined on the
-hook.
+callbacks to individual hooks, you attach a listener to an entire object.
+Anytime a hook is executed on the object being listened to, a method with a name
+corresponding to the hook is called on the listener.  These handler methods
+should take arguments corresponding to the parameters defined on the hook.
 
 This model is similar to the SAX XML event model, and to the Java
 Event/EventListener model.
