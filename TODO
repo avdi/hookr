@@ -1,8 +1,10 @@
 # -*- mode: org -*-
 * DONE Add Hook#each_callback and refactor execution to use it.
   CLOSED: [2008-12-02 Tue 11:51]
-* TODO Add ability to clear callbacks from hooks.
-* TODO Add ability to disconnect hooks from their parents
+* DONE Add ability to clear callbacks from hooks.
+  CLOSED: [2008-12-02 Tue 12:09]
+* DONE Add ability to disconnect hooks from their parents
+  CLOSED: [2008-12-02 Tue 12:09]
   Copy each_callback to a new null-parented set.
 * DONE Make #hooks and #callbacks read-only
   CLOSED: [2008-12-02 Tue 11:51]
@@ -22,3 +24,57 @@
   Driver: we need to be able to remove a listener using the the listener object
   as an index.
 * TODO Reconsider fetch_or_create_* methods - they are kinda ugly.
+* TODO More Hook parent/child unification
+  Most Hook methods should behave as if the hook contained all of its parent's
+  callbacks as well.  Specifically:
+  - It should not be possible to add a callback with the same handle as an
+    existing parent callback
+  - #callbacks should probably return a unified set of all callbacks
+
+* TODO Collect return values when running hooks iteratively
+* TODO Rewrite iterative model in terms of recursive
+  This will make some of the other TODOs possible/more feasible.
+
+  May want to push the execution models out into separate Event classes,
+  e.g. IterativeEvent and RecursiveEvent.  An IterativeEvent could apply itself
+  to a callback generator in such a way that it collected return values into an
+  array.
+
+* TODO Write example "error strategy filter"
+* TODO Syntax sugar for before_ and after_ filters
+:  class ZeroWing
+:    define_hook :we_get_signal
+:
+:    before_we_get_signal :foo
+:    after_we_get_signal  :bar
+:  end
+* TODO Syntax sugar for execute_hook
+  E.g.:
+
+  : execute_we_get_signal(arg1, arg2)
+  : run_we_get_signal(arg1, arg2)
+  
+* TODO Interleave wildcard callback execution based definition order
+  Instead of running all wildcards first or last.
+
+  One possible approach is to combine wildcards and specific callbacks into a
+  single set before executing.  This would require reworking how we generate
+  indices, if nothing else.  Indices would have to be unique across the whole
+  class.
+
+  Another approach: when adding a wildcard callback, first add it individually
+  to every existing hook.  Then add it to a class-wide "wildcard list".  When a
+  new hook is defined, add all the wildcards in the wildcard list to it.
+
+  A side-effect of the second approach is that it would be possible to remove
+  wildcard callbacks from individual instances/hooks using remove_callback().
+  This may be a feature.
+* TODO Make it possible to add a Listener at the class level
+  Both internally and externally to the class
+* TODO Make callback macros accept listeners
+* TODO Add ability for listeners to see event object
+  Currently only the event arguments are passed.
+
+  May want to make the core Listener API a single #notify(event) call, and then
+  have SomeClass::Listener add the demultiplexing code.
+* TODO Split up into multiple files
