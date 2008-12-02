@@ -667,6 +667,16 @@ describe HookR::Hook do
         callbacks.should == [@method_cb, @named_internal_cb, @anon_internal_cb,
           @named_external_cb, @anon_external_cb]
       end
+
+      it "should be able to clear its own callbacks" do
+        @it.clear_callbacks!
+        @it.callbacks.should be_empty
+      end
+
+      it "should be able to clear all callbacks" do
+        @it.clear_all_callbacks!
+        @it.callbacks.should be_empty
+      end
     end
   end
 
@@ -695,6 +705,10 @@ describe HookR::Hook do
       @it.parent.should equal(@parent)
     end
 
+    it "should not be a root hook" do
+      @it.should_not be_root
+    end
+
     it "should call parent callbacks before calling own callbacks" do
       @parent_callback.should_receive(:call).with(@event)
       @child_callback.should_receive(:call).with(@event)
@@ -706,19 +720,49 @@ describe HookR::Hook do
     end
 
     it "should be able to iterate over own and parent callbacks" do
-        callbacks  = []
-        @it.each_callback do |callback|
-          callbacks << callback
-        end
-        callbacks.should == [@parent_callback, @child_callback]
+      callbacks  = []
+      @it.each_callback do |callback|
+        callbacks << callback
+      end
+      callbacks.should == [@parent_callback, @child_callback]
     end
 
     it "should be able to reverse-iterate over own and parent callbacks" do
-        callbacks  = []
-        @it.each_callback_reverse do |callback|
-          callbacks << callback
-        end
-        callbacks.should == [@child_callback, @parent_callback]
+      callbacks  = []
+      @it.each_callback_reverse do |callback|
+        callbacks << callback
+      end
+      callbacks.should == [@child_callback, @parent_callback]
+    end
+
+    it "should be able to clear its own callbacks, leaving parent callbacks" do
+      @it.clear_callbacks!
+      @it.callbacks.should be_empty
+      callbacks  = []
+      @it.each_callback do |callback|
+        callbacks << callback
+      end
+      callbacks.should == [@parent_callback]
+    end
+
+    it "should be able to clear all callbacks" do
+      @it.clear_all_callbacks!
+      @it.callbacks.should be_empty
+      callbacks  = []
+      @it.each_callback do |callback|
+        callbacks << callback
+      end
+      callbacks.should == []
+    end
+
+    it "should leave parent callbacks alone when clearing all" do
+      @it.clear_all_callbacks!
+      @parent.should have(1).callbacks
+    end
+
+    it "should be detached from parent after clearing all callbacks" do
+      @it.clear_all_callbacks!
+      @it.should be_root
     end
   end
 

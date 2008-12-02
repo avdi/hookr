@@ -305,6 +305,16 @@ module HookR
       name.hash
     end
 
+    # Returns false.  Only true of NullHook.
+    def terminal?
+      false
+    end
+
+    # Returns true if this hook has a null parent
+    def root?
+      parent.terminal?
+    end
+
     def callbacks
       fetch_or_create_callbacks.dup.freeze
     end
@@ -347,6 +357,18 @@ module HookR
       else raise ArgumentError, "Key must be integer index or symbolic handle "\
                                 "(was: #{handle_or_index.inspect})"
       end
+    end
+
+    # Empty this hook of callbacks.  Parent hooks may still have callbacks.
+    def clear_callbacks!
+      fetch_or_create_callbacks.clear
+    end
+
+    # Empty this hook of its own AND parent callbacks.  This also disconnects
+    # the hook from its parent, if any.
+    def clear_all_callbacks!
+      disconnect!
+      clear_callbacks!
     end
 
     # Yields callbacks in order of addition, starting with any parent hooks
@@ -392,6 +414,10 @@ module HookR
     def fetch_or_create_callbacks
       @callbacks ||= CallbackSet.new
     end
+
+    def disconnect!
+      self.parent = NullHook.new unless root?
+    end
   end
 
   # A null object class for terminating Hook inheritance chains
@@ -410,6 +436,14 @@ module HookR
 
     def total_callbacks
       0
+    end
+
+    def terminal?
+      true
+    end
+
+    def root?
+      true
     end
   end
 
