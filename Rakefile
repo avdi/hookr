@@ -21,9 +21,18 @@ PROJ.url = 'http://hookr.rubyforge.org'
 PROJ.version = HookR::VERSION
 PROJ.rubyforge.name = 'hookr'
 
+PROJ.ann.email[:from]     = 'avdi@avdi.org'
+PROJ.ann.email[:to]       = 'ruby-talk@ruby-lang.org'
+PROJ.ann.email[:server]   = 'smtp.gmail.com'
+PROJ.ann.email[:domain]   = 'avdi.org'
+PROJ.ann.email[:port]     = 587
+PROJ.ann.email[:acct]     = 'avdi.grimm'
+PROJ.ann.email[:authtype] = :plain
+
 # TODO I want to be able to use -w here, but RSpec produces a hojillion warnings
 PROJ.ruby_opts = []
 PROJ.spec.opts << '--color'
+
 
 depend_on 'fail-fast', '1.0.0'
 
