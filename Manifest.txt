@@ -6,7 +6,6 @@ bin/hookr
 lib/hookr.rb
 spec/hookr_spec.rb
 spec/spec_helper.rb
-synopsis.rb
 tasks/ann.rake
 tasks/bones.rake
 tasks/gem.rake
