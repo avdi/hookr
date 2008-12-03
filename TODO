@@ -41,6 +41,18 @@
   array.
 
 * TODO Write example "error strategy filter"
+  A possible implementation for turning exceptions into benign values:
+
+  Wrap callback execution in a begin...rescue block.  If an exception is raised,
+  catch it, and wrap it in a new exception which inludes a reference to the
+  callback stack.  An exception filter further up the chain can:
+   
+  1. Catch the wrapped exception
+  2. Create a Failure object which references the exception
+  3. Replace the top element of the callback stack with a stub that just returns
+     the Failure object.
+  4. Retry the exception.
+     
 * TODO Syntax sugar for before_ and after_ filters
 :  class ZeroWing
 :    define_hook :we_get_signal
@@ -78,3 +90,5 @@
   May want to make the core Listener API a single #notify(event) call, and then
   have SomeClass::Listener add the demultiplexing code.
 * TODO Split up into multiple files
+* TODO No methods flog higher than 15
+* TODO 95% code coverage
