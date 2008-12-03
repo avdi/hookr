@@ -21,8 +21,10 @@ PROJ.url = 'http://hookr.rubyforge.org'
 PROJ.version = HookR::VERSION
 PROJ.rubyforge.name = 'hookr'
 
-# TODO I want to be able to use -w here...
+# TODO I want to be able to use -w here, but RSpec produces a hojillion warnings
 PROJ.ruby_opts = []
 PROJ.spec.opts << '--color'
+
+depend_on 'fail-fast', '1.0.0'
 
 # EOF
