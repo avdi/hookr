@@ -1,5 +1,12 @@
 require 'set'
-require 'generator'
+
+if RUBY_VERSION =~ /^1.9.\d+$/
+  require 'enumerator'
+  MyEnumerator = Enumerator
+else
+  require 'generator'
+  MyEnumerator = Generator
+end
 require 'rubygems'
 require 'fail_fast'
 
@@ -254,14 +261,14 @@ module HookR
       fetch_or_create_hooks[hook_name].execute_callbacks(event)
     end
 
-    # Returns a Generator which yields:
+    # Returns a Enumerator which yields:
     # 1. Wildcard callbacks, in reverse order, followed by
     # 2. +hook_name+ callbacks, in reverse order, followed by
     # 3. a proc which delegates to +block+
     #
     # Intended for use with recursive hook execution.
     def callback_generator(hook_name, block)
-      Generator.new do |g|
+      MyEnumerator.new do |g|
         fetch_or_create_hooks[:__wildcard__].each_callback_reverse do |callback|
           g.yield callback
         end
@@ -508,6 +515,14 @@ module HookR
       end
     end
 
+    def to_a
+      if frozen? && !@keys
+        @hash.keys.sort
+      else
+        super
+      end
+    end
+
     # get the first callback
     def first
       each do |cb|
@@ -521,7 +536,7 @@ module HookR
 
   end
 
-  Callback = Struct.new(:handle, :index) do
+  class Callback < Struct.new(:handle, :index)
     include Comparable
     include FailFast::Assertions
 
@@ -646,8 +661,8 @@ module HookR
       assert(recursive, callbacks)
       event = self.class.new(source, name, arguments, recursive, callbacks)
       event.arguments = args unless args.empty?
-      if callbacks.next?
-        callbacks.next.call(event)
+      if c = callbacks.next
+        c.call(event)
       else
         raise "No more callbacks!"
       end

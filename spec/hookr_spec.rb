@@ -173,7 +173,7 @@ describe HookR::Hooks do
 
       it "should define a Listener class responding to #foo and #bar" do
         @listener_class = @class::Listener
-        @listener_class.instance_methods(false).should include("foo", "bar")
+        @listener_class.instance_methods(false).map(&:to_s).should include("foo", "bar")
       end
 
       describe "given a subscribed Listener" do
