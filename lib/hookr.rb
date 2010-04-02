@@ -1,6 +1,6 @@
 require 'set'
 
-if RUBY_VERSION =~ /^1.9.\d+$/
+if '1.9'.respond_to?(:force_encoding)
   require 'enumerator'
   MyEnumerator = Enumerator
 else
