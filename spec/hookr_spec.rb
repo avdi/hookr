@@ -201,6 +201,39 @@ describe HookR::Hooks do
       end
     end
   end
+
+  context "included in a singleton class" do
+    before :each do
+      @object = Object.new
+      @class = (class << @object; self; end)
+      @class.module_eval do
+        include HookR::Hooks
+
+        define_hook :foo, :x, :y
+      end
+    end
+
+    specify "the singleton object should be able to list its hooks" do
+      @object.hooks.size.should be > 0
+    end
+  end
+
+  context "defined in a module and then added to an object" do
+    before :each do
+      @object = Object.new
+      @module = Module.new do
+        include HookR::Hooks
+
+        define_hook :foo, :x, :y
+      end
+      @object.extend(@module)
+    end
+
+    specify "the singleton object should be able to list its hooks" do
+      pending "FIXME"
+      @object.hooks.size.should be > 1
+    end
+  end
 end
 
 describe "a no-param hook named :on_signal" do
@@ -250,7 +283,7 @@ describe "a no-param hook named :on_signal" do
     end
 
     specify "there should be two callbacks total" do
-      @instance_hook.total_callbacks.should == 2
+      @instance_hook.total_callbacks.should be == 2
     end
 
   end
@@ -276,19 +309,19 @@ describe "a no-param hook named :on_signal" do
     end
 
     specify ":callback1 should be the first callback" do
-      @class_hook.callbacks[0].handle.should == :callback1
+      @class_hook.callbacks[0].handle.should be == :callback1
     end
 
     specify ":callback2 should be the second callback" do
-      @class_hook.callbacks[1].handle.should == :callback2
+      @class_hook.callbacks[1].handle.should be == :callback2
     end
 
     specify ":callback1 should execute the given code" do
-      @class_hook.callbacks[:callback1].call(@event).should == 2
+      @class_hook.callbacks[:callback1].call(@event).should be == 2
     end
 
     specify ":callback2 should execute the given code" do
-      @class_hook.callbacks[:callback2].call(@event).should == 4
+      @class_hook.callbacks[:callback2].call(@event).should be == 4
     end
   end
 end
@@ -322,9 +355,9 @@ describe "a two-param hook named :on_signal" do
     it "should call back with the correct arguments" do
       @sensor.should_receive(:ping) do |event, color, flavor|
         event.source.should equal(@instance)
-        event.name.should == :on_signal
-        color.should == :purple
-        flavor.should == :grape
+        event.name.should be == :on_signal
+        color.should be == :purple
+        flavor.should be == :grape
       end
       @instance.send(:execute_hook, :on_signal, :purple, :grape)
     end
@@ -403,7 +436,7 @@ describe "a two-param hook named :on_signal" do
     end
 
     specify "the callback handle should be :do_stuff" do
-      @callback.handle.should == :do_stuff
+      @callback.handle.should be == :do_stuff
     end
   end
 
@@ -439,10 +472,10 @@ describe "a two-param hook named :on_signal" do
 
     specify "the callback should call back" do
       @sensor.should_receive(:ping) do |event, arg1, arg2|
-        event.source.should == @instance
-        event.name.should == :on_signal
-        arg1.should == :apple
-        arg2.should == :orange
+        event.source.should be == @instance
+        event.name.should be == :on_signal
+        arg1.should be == :apple
+        arg2.should be == :orange
       end
       @instance.send(:execute_hook, :on_signal, :apple, :orange)
     end
@@ -518,7 +551,7 @@ describe "a two-param hook named :on_signal" do
         log(:inner, arg1, arg2)
       end
 
-      @log.should == [
+      @log.should be == [
        [:cb3_before, :on_signal, :fizz, :buzz],
        [:cb2_before, :on_signal, :fizz, :buzz],
        [:cb1_before, :on_signal, :pish, :tosh],
@@ -573,20 +606,20 @@ describe HookR::Hook do
       @block = lambda {}
     end
 
-    specify { @it.name.should == :foo }
+    specify { @it.name.should be == :foo }
 
     specify { @it.should have(0).callbacks }
 
     it "should be equal to any other hook named :foo" do
       @parent = HookR::Hook.new(:parent)
       @other = HookR::Hook.new(:foo, @parent)
-      @it.should == @other
+      @it.should be == @other
       @it.should eql(@other)
     end
 
     describe "when adding a callback" do
       it "should return the handle of the added callback" do
-        @it.add_callback(@callback).should == 123
+        @it.add_callback(@callback).should be == 123
       end
     end
 
@@ -620,16 +653,16 @@ describe HookR::Hook do
       specify { @it.should have(5).callbacks }
 
       specify "the handles of the anonymous callbacks should be their indexes" do
-        @it.callbacks[0].handle.should == 0
-        @it.callbacks[2].handle.should == 2
+        @it.callbacks[0].handle.should be == 0
+        @it.callbacks[2].handle.should be == 2
       end
 
       specify "the add methods should return handles" do
-        @anon_external_cb.should == 0
-        @named_external_cb.should == :my_external
-        @anon_internal_cb.should == 2
-        @named_internal_cb.should == :my_internal
-        @method_cb.should == :my_method
+        @anon_external_cb.should be == 0
+        @named_external_cb.should be == :my_external
+        @anon_internal_cb.should be == 2
+        @named_internal_cb.should be == :my_internal
+        @method_cb.should be == :my_method
       end
 
       specify "the callbacks should have the intended types" do
@@ -655,7 +688,7 @@ describe HookR::Hook do
         @it.each_callback do |callback|
           callbacks << callback.handle
         end
-        callbacks.should == [@anon_external_cb, @named_external_cb,
+        callbacks.should be == [@anon_external_cb, @named_external_cb,
           @anon_internal_cb, @named_internal_cb, @method_cb]
       end
 
@@ -664,7 +697,7 @@ describe HookR::Hook do
         @it.each_callback_reverse do |callback|
           callbacks << callback.handle
         end
-        callbacks.should == [@method_cb, @named_internal_cb, @anon_internal_cb,
+        callbacks.should be == [@method_cb, @named_internal_cb, @anon_internal_cb,
           @named_external_cb, @anon_external_cb]
       end
 
@@ -716,7 +749,7 @@ describe HookR::Hook do
     end
 
     it "should report 2 total callbacks" do
-      @it.total_callbacks.should == 2
+      @it.total_callbacks.should be == 2
     end
 
     it "should be able to iterate over own and parent callbacks" do
@@ -724,7 +757,7 @@ describe HookR::Hook do
       @it.each_callback do |callback|
         callbacks << callback
       end
-      callbacks.should == [@parent_callback, @child_callback]
+      callbacks.should be == [@parent_callback, @child_callback]
     end
 
     it "should be able to reverse-iterate over own and parent callbacks" do
@@ -732,7 +765,7 @@ describe HookR::Hook do
       @it.each_callback_reverse do |callback|
         callbacks << callback
       end
-      callbacks.should == [@child_callback, @parent_callback]
+      callbacks.should be == [@child_callback, @parent_callback]
     end
 
     it "should be able to clear its own callbacks, leaving parent callbacks" do
@@ -742,7 +775,7 @@ describe HookR::Hook do
       @it.each_callback do |callback|
         callbacks << callback
       end
-      callbacks.should == [@parent_callback]
+      callbacks.should be == [@parent_callback]
     end
 
     it "should be able to clear all callbacks" do
@@ -752,7 +785,7 @@ describe HookR::Hook do
       @it.each_callback do |callback|
         callbacks << callback
       end
-      callbacks.should == []
+      callbacks.should be == []
     end
 
     it "should leave parent callbacks alone when clearing all" do
@@ -804,7 +837,7 @@ describe HookR::CallbackSet do
     end
 
     it "should sort the callbacks" do
-      @it.to_a.should == [@cb1, @cb2, @cb3]
+      @it.to_a.should be == [@cb1, @cb2, @cb3]
     end
 
     it "should be able to locate callbacks by index" do

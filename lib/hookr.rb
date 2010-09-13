@@ -10,7 +10,7 @@ module HookR
   # No need to document the boilerplate convenience methods defined by Mr. Bones.
   # :stopdoc:
 
-  VERSION = '1.0.1'
+  VERSION = '1.1.0'
   LIBPATH = ::File.expand_path(::File.dirname(__FILE__)) + ::File::SEPARATOR
   PATH = ::File.dirname(LIBPATH) + ::File::SEPARATOR
 
@@ -93,6 +93,13 @@ module HookR
           const_set(const_name, listener_class)
         else
           super(const_name)
+        end
+      end
+
+      def extended(object)
+        super(object)
+        class << object
+          include ::HookR::Hooks
         end
       end
 
@@ -181,7 +188,7 @@ module HookR
 
     # returns the hooks exposed by this object
     def hooks
-      fetch_or_create_hooks.dup.freeze
+      fetch_or_create_hooks.dup
     end
 
     # Execute all callbacks associated with the hook identified by +hook_name+,
@@ -272,7 +279,22 @@ module HookR
     end
 
     def fetch_or_create_hooks
-      @hooks ||= self.class.hooks.deep_copy
+      @hooks ||= inherited_hooks.deep_copy
+    end
+
+    def inherited_hooks
+      singleton_class_hooks | class_hooks
+    end
+
+    def singleton_class_hooks
+      (class << self; self; end).hooks
+    end
+
+    def class_hooks
+      self.class.ancestors.inject(HookSet.new) { |hooks, a|
+        a_hooks = a.respond_to?(:hooks) ? a.hooks : HookSet.new
+        hooks | a_hooks
+      }
     end
   end
 
@@ -316,7 +338,7 @@ module HookR
     end
 
     def callbacks
-      fetch_or_create_callbacks.dup.freeze
+      fetch_or_create_callbacks.dup
     end
 
     # Add a callback which will be executed in the context where it was defined

@@ -1,39 +1,32 @@
-# Look in the tasks/setup.rb file for the various options that can be
-# configured in this Rakefile. The .rake files in the tasks directory
-# are where the options are used.
+gem 'bones', '~> 3.0'
 
 begin
   require 'bones'
-  Bones.setup
 rescue LoadError
-  load 'tasks/setup.rb'
+  abort '### Please install the "bones" gem ###'
 end
 
-ensure_in_path 'lib'
-require 'hookr'
-
 task :default => 'spec:run'
+task 'gem:release' => 'spec:run'
 
-PROJ.name = 'hookr'
-PROJ.authors = 'Avdi Grimm'
-PROJ.email = 'avdi@avdi.org'
-PROJ.url = 'http://hookr.rubyforge.org'
-PROJ.version = HookR::VERSION
-PROJ.rubyforge.name = 'hookr'
+Bones {
+  name    'hookr'
+  authors 'Avdi Grimm'
+  email   'avdi@avdi.org'
+  url     'http://hookr.rubyforge.org'
 
-PROJ.ann.email[:from]     = 'avdi@avdi.org'
-PROJ.ann.email[:to]       = 'ruby-talk@ruby-lang.org'
-PROJ.ann.email[:server]   = 'smtp.gmail.com'
-PROJ.ann.email[:domain]   = 'avdi.org'
-PROJ.ann.email[:port]     = 587
-PROJ.ann.email[:acct]     = 'avdi.grimm'
-PROJ.ann.email[:authtype] = :plain
+  summary "A callback hooks framework for Ruby."
 
-# TODO I want to be able to use -w here, but RSpec produces a hojillion warnings
-PROJ.ruby_opts = []
-PROJ.spec.opts << '--color'
+  # ann.email[:from]     = 'avdi@avdi.org'
+  # ann.email[:to]       = 'ruby-talk@ruby-lang.org'
+  # ann.email[:server]   = 'smtp.gmail.com'
+  # ann.email[:domain]   = 'avdi.org'
+  # ann.email[:port]     = 587
+  # ann.email[:acct]     = 'avdi.grimm'
+  # ann.email[:authtype] = :plain
 
+  depend_on 'fail-fast', '1.0.0'
+}
 
-depend_on 'fail-fast', '1.0.0'
 
 # EOF
