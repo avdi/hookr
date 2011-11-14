@@ -25,7 +25,7 @@ Bones {
   # ann.email[:acct]     = 'avdi.grimm'
   # ann.email[:authtype] = :plain
 
-  depend_on 'fail-fast', '1.0.0'
+  depend_on 'fail-fast', '1.1.0'
 }
 
 
