@@ -90,6 +90,7 @@ module HookR
       def const_missing(const_name)
         if const_name.to_s == "Listener"
           hooks = fetch_or_create_hooks
+          # TODO shouldn't this be @listener_class???
           listener_class ||= Class.new do
             hooks.each do |hook|
               define_method(hook.name) do |*args|
